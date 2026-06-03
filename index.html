@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>식도락 여행 메모장</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter & Noto Sans KR 폰트 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-color: #fcf9f5;
+        }
+        /* 스크롤바 커스텀 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #fcd34d;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f59e0b;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col pb-24">
+
+    <!-- 헤더 바 -->
+    <header class="bg-white border-b border-amber-100 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-md mx-auto px-4 py-3.5 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl">🏮</span>
+                <div>
+                    <h1 class="font-black text-base text-amber-900 leading-tight">식도락 대만 투어</h1>
+                    <p class="text-[10px] text-amber-600 font-semibold">적용 환율: 1 TWD = 42원</p>
+                </div>
+            </div>
+            <!-- 전체 통계 배지 -->
+            <div class="bg-amber-50 px-2.5 py-1.5 rounded-full border border-amber-100 flex flex-col items-end">
+                <span class="text-[9px] font-bold text-amber-800 uppercase leading-none">총 지출 합계</span>
+                <span id="global-total-price" class="text-xs font-black text-amber-600 mt-0.5">NT$ 0 (0원)</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <main class="max-w-md mx-auto w-full px-4 mt-5 flex-grow flex flex-col">
+        <!-- 여행 일정 정보 배너 -->
+        <div class="bg-gradient-to-r from-amber-400 to-orange-400 rounded-3xl p-5 text-white shadow-md shadow-orange-100 mb-6 relative overflow-hidden">
+            <div class="absolute -right-8 -bottom-8 opacity-10 text-9xl">🥟</div>
+            <div class="relative z-10">
+                <span class="bg-white/20 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider backdrop-blur-sm">Taiwan Food Log</span>
+                <h2 class="text-lg font-black mt-2">대만 식도락 여행 메모기장</h2>
+                <p class="text-xs opacity-90 mt-1">17일부터 20일까지 맛본 음식들의 대만달러(TWD)와 한화(KRW) 환산 지출을 편리하게 기록해보세예~</p>
+            </div>
+        </div>
+
+        <!-- 날짜 선택 세그먼트 (17일 ~ 20일) -->
+        <div class="mb-6">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">날짜 선택</h3>
+            <div class="grid grid-cols-4 gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                <button onclick="selectDate(17)" id="btn-date-17" class="date-tab py-3 px-1 rounded-xl text-center transition-all duration-300 focus:outline-none">
+                    <span class="block text-xs font-bold text-slate-400" id="sub-17">1일차</span>
+                    <span class="block text-base font-extrabold text-slate-700" id="main-17">17일</span>
+                </button>
+                <button onclick="selectDate(18)" id="btn-date-18" class="date-tab py-3 px-1 rounded-xl text-center transition-all duration-300 focus:outline-none">
+                    <span class="block text-xs font-bold text-slate-400" id="sub-18">2일차</span>
+                    <span class="block text-base font-extrabold text-slate-700" id="main-18">18일</span>
+                </button>
+                <button onclick="selectDate(19)" id="btn-date-19" class="date-tab py-3 px-1 rounded-xl text-center transition-all duration-300 focus:outline-none">
+                    <span class="block text-xs font-bold text-slate-400" id="sub-19">3일차</span>
+                    <span class="block text-base font-extrabold text-slate-700" id="main-19">19일</span>
+                </button>
+                <button onclick="selectDate(20)" id="btn-date-20" class="date-tab py-3 px-1 rounded-xl text-center transition-all duration-300 focus:outline-none">
+                    <span class="block text-xs font-bold text-slate-400" id="sub-20">4일차</span>
+                    <span class="block text-base font-extrabold text-slate-700" id="main-20">20일</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 식당 목록 영역 -->
+        <div class="flex-grow flex flex-col">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-bold text-slate-600"><span id="selected-date-title">17일</span> 방문한 식당</h3>
+                <span id="restaurant-count" class="text-xs bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-full">0개</span>
+            </div>
+
+            <!-- 식당 카드 리스트 -->
+            <div id="restaurant-list" class="space-y-3 flex-grow">
+                <!-- 동적으로 추가될 예정 -->
+            </div>
+
+            <!-- 식당이 없을 때 보여줄 엠티 스테이트 -->
+            <div id="empty-state" class="hidden py-12 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-3xl bg-white/50 text-center px-6">
+                <div class="text-4xl mb-3">🍜</div>
+                <h4 class="font-bold text-slate-700 text-sm">기록된 맛집이 없어예</h4>
+                <p class="text-xs text-slate-400 mt-1 mb-4">새로운 대만 맛집을 메모에 추가해 보세예!</p>
+                <button onclick="openAddModal()" class="inline-flex items-center space-x-1.5 text-xs font-bold bg-amber-500 text-white px-4 py-2 rounded-full hover:bg-amber-600 shadow-sm transition">
+                    <span>➕ 맛집 기록하기</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 하단 고정 등록 버튼 -->
+    <div class="fixed bottom-6 left-0 right-0 max-w-md mx-auto px-4 z-10">
+        <button onclick="openAddModal()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg hover:from-amber-600 hover:to-orange-600 transition duration-300 transform active:scale-[0.98] flex items-center justify-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+            </svg>
+            <span class="text-base tracking-wide"><span id="btn-date-hint">17일</span> 식당 기록 추가</span>
+        </button>
+    </div>
+
+    <!-- 식당 및 메뉴 추가 모달 팝업 -->
+    <div id="add-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh] scale-95 transition-transform duration-300" id="add-modal-content">
+            <!-- 모달 헤더 -->
+            <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-4 sm:p-5 text-white flex justify-between items-center shrink-0">
+                <div>
+                    <span id="modal-date-tag" class="bg-white/20 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider backdrop-blur-sm">17일 맛집 등록</span>
+                    <h3 class="text-lg font-black mt-1">맛있는 식사 기록하기</h3>
+                </div>
+                <button onclick="closeAddModal()" class="text-white hover:bg-white/10 p-1.5 rounded-full transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- 모달 바디 (스크롤 가능) -->
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-5 flex-grow">
+                <!-- STEP 1: 식당 이름 입력 -->
+                <div id="step-restaurant" class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">식당 이름</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="input-restaurant-name" placeholder="예: 삼형제 망고빙수, 아종면선" class="flex-grow border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition w-full min-w-0">
+                        <button onclick="createRestaurant()" id="btn-create-restaurant" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm px-4 py-3 rounded-xl transition whitespace-nowrap shrink-0">식당 생성</button>
+                    </div>
+                </div>
+
+                <!-- STEP 2: 메뉴 및 금액 추가 -->
+                <div id="step-menu" class="space-y-4 opacity-40 pointer-events-none transition-all duration-300 border-t border-slate-100 pt-4">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">먹은 메뉴 & 금액 추가</label>
+                        <span id="current-restaurant-badge" class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2 py-0.5 rounded-md truncate max-w-[150px]"></span>
+                    </div>
+                    
+                    <!-- 세로 적층 레이아웃 -->
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
+                        <div class="space-y-2.5">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 mb-1">메뉴 이름</label>
+                                <input type="text" id="input-menu-name" placeholder="예: 우육면, 망고빙수" class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 mb-1">결제 금액 (대만달러 TWD)</label>
+                                <div class="relative">
+                                    <input type="number" id="input-menu-price" placeholder="예: 250" class="w-full border border-slate-200 rounded-xl pl-3.5 pr-14 py-2.5 text-xs focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white" onkeydown="if(event.key==='Enter') addMenuToList()">
+                                    <span class="absolute right-3 top-2.5 text-xs text-slate-500 font-bold">TWD</span>
+                                </div>
+                                <span id="realtime-exchange-preview" class="block text-[10px] text-amber-600 mt-1 font-semibold pl-1">한화 약 0원 예정</span>
+                            </div>
+                        </div>
+                        <button onclick="addMenuToList()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs py-2.5 rounded-xl transition flex items-center justify-center space-x-1 mt-1">
+                            <span>➕ 메뉴 추가하기</span>
+                        </button>
+                    </div>
+
+                    <!-- 실시간으로 추가되는 임시 메뉴 목록 리스트 -->
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-500 mb-2">방금 추가한 메뉴 목록 (<span id="temp-menu-count">0</span>)</h4>
+                        <div id="temp-menu-list" class="space-y-2 max-h-36 overflow-y-auto pr-1">
+                            <p class="text-[11px] text-slate-400 text-center py-4">아직 추가된 메뉴가 없습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 모달 푸터 -->
+            <div class="border-t border-slate-100 p-4 bg-slate-50 flex space-x-3 shrink-0">
+                <button onclick="closeAddModal()" class="w-1/3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3.5 rounded-xl text-sm transition">취소</button>
+                <button onclick="finishSaving()" id="btn-submit-all" class="w-2/3 bg-slate-400 text-white font-black py-3.5 rounded-xl text-sm transition" disabled>작성 완료하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 식당 상세 보기 모달 팝업 -->
+    <div id="detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh] scale-95 transition-transform duration-300" id="detail-modal-content">
+            <!-- 모달 헤더 -->
+            <div class="bg-slate-900 p-4 sm:p-5 text-white flex justify-between items-center shrink-0">
+                <div>
+                    <span id="detail-date-tag" class="bg-white/10 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider backdrop-blur-sm text-amber-300 border border-amber-500/30"></span>
+                    <h3 id="detail-restaurant-title" class="text-lg font-black mt-1">식당 이름</h3>
+                </div>
+                <button onclick="closeDetailModal()" class="text-white hover:bg-white/10 p-1.5 rounded-full transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- 모달 바디 (식사 영수증 리스트) -->
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-6 flex-grow">
+                <div class="relative bg-amber-50/50 rounded-2xl border border-amber-100 p-4 sm:p-5">
+                    <!-- 영수증 장식 -->
+                    <div class="absolute -top-1.5 left-0 right-0 h-1.5 flex justify-between px-3 overflow-hidden">
+                        <div class="w-3 h-3 bg-white rounded-full -mt-1.5"></div>
+                        <div class="w-3 h-3 bg-white rounded-full -mt-1.5"></div>
+                        <div class="w-3 h-3 bg-white rounded-full -mt-1.5"></div>
+                        <div class="w-3 h-3 bg-white rounded-full -mt-1.5"></div>
+                        <div class="w-3 h-3 bg-white rounded-full -mt-1.5"></div>
+                        <div class="w-3 h-3 bg-white rounded-full -mt-1.5"></div>
+                        <div class="w-3 h-3 bg-white rounded-full -mt-1.5"></div>
+                    </div>
+
+                    <div class="flex justify-between items-center pb-3 border-b border-dashed border-amber-200 text-xs font-bold text-slate-400">
+                        <span>메뉴명</span>
+                        <span class="whitespace-nowrap">결제 금액 (TWD / 원화)</span>
+                    </div>
+
+                    <!-- 메뉴 리스트 상세 내용 -->
+                    <div id="detail-menu-items-list" class="py-4 space-y-4">
+                        <!-- 동적으로 렌더링 -->
+                    </div>
+
+                    <!-- 총 지출액 요약 -->
+                    <div class="pt-4 border-t-2 border-slate-200 flex justify-between items-center">
+                        <span class="text-sm font-black text-slate-700">총 지출 금액</span>
+                        <div id="detail-total-amount" class="text-right">
+                            <span class="text-lg font-black text-orange-600">NT$ 0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 모달 푸터 (닫기 및 삭제) -->
+            <div class="border-t border-slate-100 p-4 bg-slate-50 flex space-x-3 shrink-0">
+                <button onclick="confirmDeleteCurrentRestaurant()" class="w-1/3 border border-red-200 hover:bg-red-50 text-red-500 font-bold py-3.5 rounded-xl text-xs transition flex items-center justify-center space-x-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>기록 삭제</span>
+                </button>
+                <button onclick="closeDetailModal()" class="w-2/3 bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3.5 rounded-xl text-sm transition">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 커스텀 삭제 확인 모달 (iframe 보안 정책 우회용 안전한 모달) -->
+    <div id="delete-confirm-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-xs shadow-2xl p-5 text-center space-y-4">
+            <div class="text-4xl">⚠️</div>
+            <h4 class="font-black text-slate-800 text-base">기록을 삭제할까예?</h4>
+            <p class="text-xs text-slate-500 leading-relaxed">정말로 이 식당의 대만 먹방 기록을 지우시겠습니까? 삭제된 정보는 되돌릴 수 없어예.</p>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeDeleteConfirmModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">취소</button>
+                <button onclick="executeDeleteRestaurant()" class="w-1/2 bg-red-500 hover:bg-red-600 text-white font-black py-2.5 rounded-xl text-xs transition">지우기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 메시지 알림 컨테이너 -->
+    <div id="toast-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 transform translate-y-2 opacity-0">
+        <div id="toast-text" class="bg-slate-800/95 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg flex items-center space-x-1.5 backdrop-blur-sm">
+            <span>💡</span> <span id="toast-msg">메시지가 전송되었습니다.</span>
+        </div>
+    </div>
+
+    <script>
+        // 전역 상태 데이터 관리
+        let activeDate = 17; // 기본 선택 날짜 17일
+        const EXCHANGE_RATE = 42; // 대만달러 -> 한국원화 환율 (1 TWD = 42 KRW)
+
+        let travelData = {
+            17: [],
+            18: [],
+            19: [],
+            20: []
+        };
+
+        // 모달 등록 시 사용할 임시 상태 데이터
+        let tempRestaurantName = "";
+        let tempMenuList = [];
+        let currentlyViewingRestaurantId = null;
+
+        // 브라우저 로딩 완료 후 초기 구동 시작
+        window.onload = function() {
+            loadSavedData();
+            selectDate(17);
+            updateGlobalTotal();
+            setupRealtimePricePreview();
+        }
+
+        // 로컬스토리지에서 데이터 로드하기
+        function loadSavedData() {
+            const saved = localStorage.getItem('travel_food_memories_taiwan_v1');
+            if (saved) {
+                try {
+                    travelData = JSON.parse(saved);
+                    // 혹시 날짜 데이터가 유실되었을 경우 예외처리로 안전하게 초기화
+                    [17, 18, 19, 20].forEach(d => {
+                        if (!travelData[d]) travelData[d] = [];
+                    });
+                } catch(e) {
+                    console.error("데이터 복원 실패, 초기화합니다.");
+                }
+            }
+        }
+
+        // 로컬스토리지에 데이터 저장하기
+        function saveData() {
+            localStorage.setItem('travel_food_memories_taiwan_v1', JSON.stringify(travelData));
+            updateGlobalTotal();
+        }
+
+        // 토스트 알림 표시 함수
+        function showToast(message) {
+            const toast = document.getElementById('toast-container');
+            const toastMsg = document.getElementById('toast-msg');
+            toastMsg.innerText = message;
+            toast.classList.remove('opacity-0', 'translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-2');
+            }, 2500);
+        }
+
+        // 특정 날짜 선택 이벤트 처리
+        function selectDate(date) {
+            activeDate = date;
+
+            // 모든 탭 스타일 초기화
+            document.querySelectorAll('.date-tab').forEach(tab => {
+                tab.classList.remove('bg-white', 'shadow-md', 'shadow-slate-200/50', 'ring-1', 'ring-slate-200/50');
+                // 텍스트 초기화
+                const tabId = tab.id.split('-').pop();
+                document.getElementById(`sub-${tabId}`).className = "block text-[10px] font-bold text-slate-400";
+                document.getElementById(`main-${tabId}`).className = "block text-base font-extrabold text-slate-600";
+            });
+
+            // 선택된 탭 활성화 스타일 적용
+            const activeTab = document.getElementById(`btn-date-${date}`);
+            if (activeTab) {
+                activeTab.classList.add('bg-white', 'shadow-md', 'shadow-slate-200/50', 'ring-1', 'ring-slate-200/50');
+                document.getElementById(`sub-${date}`).className = "block text-[10px] font-extrabold text-amber-500";
+                document.getElementById(`main-${date}`).className = "block text-lg font-black text-amber-950";
+            }
+
+            // 페이지 타이틀 및 안내 텍스트 변경
+            document.getElementById('selected-date-title').innerText = `${date}일에`;
+            document.getElementById('btn-date-hint').innerText = `${date}일`;
+
+            // 해당 날짜 식당 목록 리셋 및 렌더링
+            renderRestaurants();
+        }
+
+        // 총 지출 및 대시보드 통계 업데이트 (대만달러 + 원화 동시표기)
+        function updateGlobalTotal() {
+            let totalTWD = 0;
+            Object.keys(travelData).forEach(date => {
+                travelData[date].forEach(res => {
+                    res.menus.forEach(m => {
+                        totalTWD += Number(m.price || 0);
+                    });
+                });
+            });
+            let totalKRW = totalTWD * EXCHANGE_RATE;
+            document.getElementById('global-total-price').innerText = `NT$ ${totalTWD.toLocaleString()} (${totalKRW.toLocaleString()}원)`;
+        }
+
+        // 대만달러 입력 시 하단에 원화 예상 금액을 실시간으로 안내하는 도우미 기능
+        function setupRealtimePricePreview() {
+            const priceInput = document.getElementById('input-menu-price');
+            const previewText = document.getElementById('realtime-exchange-preview');
+            
+            priceInput.addEventListener('input', function() {
+                const val = Number(priceInput.value);
+                if (val > 0) {
+                    const krwVal = val * EXCHANGE_RATE;
+                    previewText.innerText = `한화 약 ${krwVal.toLocaleString()}원 예정`;
+                } else {
+                    previewText.innerText = '한화 약 0원 예정';
+                }
+            });
+        }
+
+        // 식당 카드 리스트 렌더링
+        function renderRestaurants() {
+            const listContainer = document.getElementById('restaurant-list');
+            const emptyState = document.getElementById('empty-state');
+            const currentList = travelData[activeDate] || [];
+
+            // 카운터 표시 업데이트
+            document.getElementById('restaurant-count').innerText = `${currentList.length}개`;
+
+            if (currentList.length === 0) {
+                listContainer.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            let htmlContent = '';
+
+            currentList.forEach((restaurant) => {
+                // 식당별 총액 계산
+                let totalTWD = 0;
+                restaurant.menus.forEach(m => totalTWD += Number(m.price));
+                let totalKRW = totalTWD * EXCHANGE_RATE;
+
+                htmlContent += `
+                    <div onclick="openDetailModal(${restaurant.id})" class="bg-white border border-slate-100 hover:border-amber-200 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex justify-between items-center transform hover:-translate-y-0.5 group">
+                        <div class="space-y-1.5 flex-grow pr-4 min-w-0">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-base shrink-0">📍</span>
+                                <h4 class="font-extrabold text-slate-800 text-sm group-hover:text-amber-600 transition truncate">${escapeHtml(restaurant.name)}</h4>
+                            </div>
+                            <div class="flex flex-col sm:flex-row sm:items-center space-y-0.5 sm:space-y-0 sm:space-x-2 text-xs text-slate-400 pl-6">
+                                <span>🍴 메뉴 ${restaurant.menus.length}개</span>
+                                <span class="hidden sm:inline text-slate-200">|</span>
+                                <span class="text-slate-500 font-semibold truncate">
+                                    총 NT$ ${totalTWD.toLocaleString()} <span class="text-amber-600 font-bold">(약 ${totalKRW.toLocaleString()}원)</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1 text-xs font-bold text-amber-500 bg-amber-50 group-hover:bg-amber-100 px-3 py-2 rounded-xl transition shrink-0">
+                            <span>보기</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            });
+
+            listContainer.innerHTML = htmlContent;
+        }
+
+        // 식당 추가 모달 열기
+        function openAddModal() {
+            // 임시 상태 초기화
+            tempRestaurantName = "";
+            tempMenuList = [];
+            
+            document.getElementById('modal-date-tag').innerText = `${activeDate}일 식당 등록`;
+            document.getElementById('input-restaurant-name').value = "";
+            document.getElementById('input-restaurant-name').disabled = false;
+            document.getElementById('btn-create-restaurant').disabled = false;
+            document.getElementById('btn-create-restaurant').classList.remove('opacity-50');
+            document.getElementById('btn-create-restaurant').innerText = "식당 생성";
+
+            // 메뉴 입력부 초기화 및 잠금
+            document.getElementById('input-menu-name').value = "";
+            document.getElementById('input-menu-price').value = "";
+            document.getElementById('realtime-exchange-preview').innerText = "한화 약 0원 예정";
+            document.getElementById('temp-menu-list').innerHTML = `<p class="text-[11px] text-slate-400 text-center py-4">아직 추가된 메뉴가 없습니다.</p>`;
+            document.getElementById('temp-menu-count').innerText = "0";
+
+            const stepMenu = document.getElementById('step-menu');
+            stepMenu.classList.add('opacity-40', 'pointer-events-none');
+
+            // 전반적인 전송버튼 제어 비활성화
+            updateSubmitButtonState();
+
+            // 모달 노출 처리
+            const modal = document.getElementById('add-modal');
+            const content = document.getElementById('add-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 50);
+        }
+
+        // 식당 추가 모달 닫기
+        function closeAddModal() {
+            const modal = document.getElementById('add-modal');
+            const content = document.getElementById('add-modal-content');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 150);
+        }
+
+        // 식당 이름 기입 후 "식당 생성" 누를 때의 이벤트
+        function createRestaurant() {
+            const inputName = document.getElementById('input-restaurant-name').value.trim();
+            if (!inputName) {
+                showToast("식당 이름을 입력해주세예!");
+                return;
+            }
+
+            tempRestaurantName = inputName;
+
+            // 식당 입력창 고정 및 비활성화 처리
+            document.getElementById('input-restaurant-name').disabled = true;
+            document.getElementById('btn-create-restaurant').disabled = true;
+            document.getElementById('btn-create-restaurant').classList.add('opacity-50');
+            document.getElementById('btn-create-restaurant').innerText = "생성 완료";
+
+            // 메뉴 추가 단계 오픈
+            const stepMenu = document.getElementById('step-menu');
+            stepMenu.classList.remove('opacity-40', 'pointer-events-none');
+            document.getElementById('current-restaurant-badge').innerText = inputName;
+
+            showToast(`'${inputName}' 맛집 활성화! 이제 메뉴를 등록해보세예~`);
+            document.getElementById('input-menu-name').focus();
+        }
+
+        // 임시 모달 메뉴 리스트에 아이템 추가
+        function addMenuToList() {
+            const menuNameInput = document.getElementById('input-menu-name');
+            const menuPriceInput = document.getElementById('input-menu-price');
+
+            const menuName = menuNameInput.value.trim();
+            const menuPrice = menuPriceInput.value.trim();
+
+            if (!menuName) {
+                showToast("메뉴 이름을 정확히 적어주세예.");
+                menuNameInput.focus();
+                return;
+            }
+            if (!menuPrice || Number(menuPrice) < 0) {
+                showToast("올바른 대만달러 금액을 기입해 주세예.");
+                menuPriceInput.focus();
+                return;
+            }
+
+            // 임시 세션 리스트에 신규 메뉴 등록
+            const newItem = {
+                id: Date.now() + Math.random().toString(36).substr(2, 5),
+                name: menuName,
+                price: Number(menuPrice)
+            };
+
+            tempMenuList.push(newItem);
+
+            // 임시 목록 다시 그리기
+            renderTempMenuList();
+
+            // 입력 필드 초기화
+            menuNameInput.value = "";
+            menuPriceInput.value = "";
+            document.getElementById('realtime-exchange-preview').innerText = "한화 약 0원 예정";
+            menuNameInput.focus();
+
+            updateSubmitButtonState();
+        }
+
+        // 임시 등록된 메뉴 리스트 개별 삭제 기능
+        function removeTempMenu(id) {
+            tempMenuList = tempMenuList.filter(item => item.id !== id);
+            renderTempMenuList();
+            updateSubmitButtonState();
+        }
+
+        // 모달창 내부 실시간 메뉴 그리기
+        function renderTempMenuList() {
+            const container = document.getElementById('temp-menu-list');
+            document.getElementById('temp-menu-count').innerText = tempMenuList.length;
+
+            if (tempMenuList.length === 0) {
+                container.innerHTML = `<p class="text-[11px] text-slate-400 text-center py-4">아직 추가된 메뉴가 없습니다.</p>`;
+                return;
+            }
+
+            let html = '';
+            tempMenuList.forEach(item => {
+                const krwPrice = item.price * EXCHANGE_RATE;
+                html += `
+                    <div class="flex justify-between items-center bg-amber-50/70 border border-amber-100 rounded-xl px-3.5 py-2">
+                        <div class="flex flex-col min-w-0 pr-2">
+                            <span class="text-xs font-bold text-slate-800 truncate">${escapeHtml(item.name)}</span>
+                            <span class="text-[10px] text-amber-700 font-extrabold">
+                                NT$ ${item.price.toLocaleString()} <span class="text-slate-400 font-normal">(약 ${krwPrice.toLocaleString()}원)</span>
+                            </span>
+                        </div>
+                        <button onclick="removeTempMenu('${item.id}')" class="text-slate-400 hover:text-red-500 transition p-1 shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // 모달 최종 제출 버튼 유효성 상태 업데이트
+        function updateSubmitButtonState() {
+            const btn = document.getElementById('btn-submit-all');
+            if (tempRestaurantName && tempMenuList.length > 0) {
+                btn.disabled = false;
+                btn.className = "w-2/3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black py-3.5 rounded-xl text-sm shadow-md transition transform active:scale-[0.98]";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-2/3 bg-slate-300 text-slate-500 font-bold py-3.5 rounded-xl text-sm transition cursor-not-allowed";
+            }
+        }
+
+        // 작성완료 클릭 시 최종 저장 및 날짜 목록 갱신
+        function finishSaving() {
+            if (!tempRestaurantName || tempMenuList.length === 0) return;
+
+            const newRestaurant = {
+                id: Date.now(),
+                name: tempRestaurantName,
+                menus: tempMenuList
+            };
+
+            // 활성 날짜 배열에 정보 밀어넣기
+            if (!travelData[activeDate]) {
+                travelData[activeDate] = [];
+            }
+            travelData[activeDate].push(newRestaurant);
+
+            // 데이터 영속 저장 및 갱신
+            saveData();
+            renderRestaurants();
+            closeAddModal();
+            showToast(`🎉 '${tempRestaurantName}' 맛집 기록이 완료되었습니다!`);
+        }
+
+        // 식당 세부 정보 보기 모달 열기
+        function openDetailModal(restaurantId) {
+            currentlyViewingRestaurantId = restaurantId;
+            const currentList = travelData[activeDate] || [];
+            const restaurant = currentList.find(r => r.id === restaurantId);
+
+            if (!restaurant) {
+                showToast("해당 기록을 찾을 수 없어예.");
+                return;
+            }
+
+            document.getElementById('detail-date-tag').innerText = `📅 ${activeDate}일의 대만 맛집`;
+            document.getElementById('detail-restaurant-title').innerText = restaurant.name;
+
+            // 상세 메뉴 및 영수증 정보 채우기 (대만달러 + 원화 동시표기)
+            const menuContainer = document.getElementById('detail-menu-items-list');
+            let menuHtml = '';
+            let totalTWD = 0;
+
+            restaurant.menus.forEach(item => {
+                totalTWD += Number(item.price);
+                const itemKRW = Number(item.price) * EXCHANGE_RATE;
+                menuHtml += `
+                    <div class="flex justify-between items-center text-xs py-1">
+                        <span class="font-bold text-slate-700 truncate max-w-[50%]">${escapeHtml(item.name)}</span>
+                        <div class="flex-grow border-b border-dotted border-slate-300 mx-3 h-2"></div>
+                        <div class="text-right shrink-0">
+                            <span class="font-extrabold text-slate-900">NT$ ${item.price.toLocaleString()}</span>
+                            <span class="text-[10px] text-amber-600 block sm:inline font-bold sm:ml-1">(약 ${itemKRW.toLocaleString()}원)</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            menuContainer.innerHTML = menuHtml;
+
+            const totalKRW = totalTWD * EXCHANGE_RATE;
+            document.getElementById('detail-total-amount').innerHTML = `
+                <div class="text-right">
+                    <div class="text-lg font-black text-orange-600">NT$ ${totalTWD.toLocaleString()}</div>
+                    <div class="text-xs text-slate-500 font-bold">(약 ${totalKRW.toLocaleString()}원)</div>
+                </div>
+            `;
+
+            // 상세 모달 열기 애니메이션
+            const modal = document.getElementById('detail-modal');
+            const content = document.getElementById('detail-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 50);
+        }
+
+        // 식당 상세 모달 닫기
+        function closeDetailModal() {
+            const modal = document.getElementById('detail-modal');
+            const content = document.getElementById('detail-modal-content');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                currentlyViewingRestaurantId = null;
+            }, 150);
+        }
+
+        // [커스텀 알림 적용] 삭제 재확인창 띄우기
+        function confirmDeleteCurrentRestaurant() {
+            if (!currentlyViewingRestaurantId) return;
+            const confirmModal = document.getElementById('delete-confirm-modal');
+            confirmModal.classList.remove('hidden');
+        }
+
+        // 삭제 확인창 닫기
+        function closeDeleteConfirmModal() {
+            const confirmModal = document.getElementById('delete-confirm-modal');
+            confirmModal.classList.add('hidden');
+        }
+
+        // 실제로 식당 삭제 로직을 실행하는 부분
+        function executeDeleteRestaurant() {
+            if (!currentlyViewingRestaurantId) return;
+
+            // 데이터 제거 처리
+            travelData[activeDate] = travelData[activeDate].filter(r => r.id !== currentlyViewingRestaurantId);
+            
+            saveData();
+            renderRestaurants();
+            
+            closeDeleteConfirmModal();
+            closeDetailModal();
+            showToast("🗑️ 맛집 기록이 정상적으로 삭제되었습니다.");
+        }
+
+        // HTML 이스케이프 문자 치환 (보안성 필터링)
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    </script>
+</body>
+</html>
